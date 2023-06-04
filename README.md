@@ -6,7 +6,7 @@ The analysis covers various aspects. Firstly, the effectiveness of the deliverie
 
 It is important to highlight that this project was created in a Cloud9 environment, and AWS services were leveraged to execute Athena queries, allowing the retrieval of the required DataFrames for obtaining the expected results.
 
-Additional Notes
+Additional Notes:
 This project was developed specifically for a company and utilizes internal company data. Its functionality or usefulness outside of this context is not guaranteed.
 This README was created to showcase my coding abilities. It is not expected for others to use this project in a different environment than the one mentioned.
 If you have any questions or concerns, please feel free to contact me.
@@ -23,7 +23,7 @@ El análisis realizado abarca múltiples aspectos. En primer lugar, se evalúa l
 Es importante destacar que este proyecto fue desarrollado en un entorno Cloud9 y se aprovechó el servicio AWS para ejecutar consultas a Athena, lo cual permitió obtener los DataFrames necesarios para obtener los resultados esperados.
 
 
-Notas adicionales
+Notas adicionales:
 Este proyecto fue desarrollado específicamente para una empresa y utiliza datos internos de la compañía. No se garantiza su funcionamiento o utilidad fuera de este contexto.
 Este README fue creado con el propósito de mostrar mi capacidad para desarrollar código. No se espera que otras personas utilicen este proyecto en un entorno distinto al mencionado.
 Si tiene alguna pregunta o inquietud, no dude en ponerse en contacto conmigo.
