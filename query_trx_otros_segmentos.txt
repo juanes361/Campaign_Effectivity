@@ -1,0 +1,35 @@
+
+
+
+select distinct 
+--CASE WHEN MV.VIAJEROS_PCO=1 THEN 'Viajeros' ELSE 'No viajeros' END AS VIAJEROS, /* VIAJEROS_LINE */  
+--CASE WHEN MV.MILLERO_PCO=1 THEN 'Milleros' ELSE 'No milleros' END AS MILLEROS,  /* MILLEROS_LINE */ 
+--CASE WHEN MV.SEGMENTO IS NOT NULL THEN SEGMENTO ELSE 'Sin Segmento' END AS SEGMENTO,  /* CARULLA_LINE   EXITO_SEG_LINE BANCO_LINE*/  
+--CASE WHEN MV.DECIL IS NOT NULL THEN CAST(DECIL AS VARCHAR) ELSE 'Sin decil' END AS DECIL,  /* EXITO_DECIL_LINE */ 
+
+cast((round(SUM(trx.VALOR_TRX) * 100.0 / SUM(SUM(trx.VALOR_TRX)) OVER (),8))/100 as decimal(32,6)) AS Sales_part,  
+count(distinct(trx.customer_id_)) as cliente_acumula,    
+SUM(trx.PUNTOS) AS PUNTOS,  
+cast(SUM(trx.VALOR_TRX) as bigint) AS VALOR_TRX, 
+COUNT(trx.TRX_ID) AS TRX    
+FROM ("pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") TRX 
+JOIN ({{query_comunicados}}) BD 
+ON (trx.CUSTOMER_ID_ = bd.CUSTOMER_ID_ ) 
+LEFT JOIN 
+--("pco_datalake_prod_bi_campanas_db"."viajeros_pco") MV /* VIAJEROS_LINE */  
+--("pco_datalake_prod_bi_campanas_db"."milleros_pco") MV /* MILLEROS_LINE */ 
+--("pco_datalake_prod_datalake_exito_db"."bd_ctes_seg_carulla") MV /* CARULLA_LINE */ 
+--("pco_datalake_prod_datalake_process_data"."bd_clientes_banco" ) MV /* BANCO_LINE */ 
+--(SELECT numerodocidcliente AS NRO_DOCUMENTO, cdtipodocidcliente AS TIPO_DOCUMENTO, DECIL  /* EXITO_DECIL_LINE */ 
+--FROM  "pco_datalake_prod_datalake_exito_db"."segmentacion_clientes_deciles_exito"  )MV /* EXITO_DECIL_LINE */ 
+--(SELECT numerodocidcliente AS NRO_DOCUMENTO, cdtipodocidcliente AS TIPO_DOCUMENTO, SEGMENTO  /* EXITO_SEG_LINE */ 
+--FROM "pco_datalake_prod_datalake_exito_db"."segmentacion_fidelidad_202209")MV /* EXITO_SEG_LINE */
+ON CONCAT(CAST(MV.TIPO_DOCUMENTO AS VARCHAR),'-',CAST(MV.NRO_DOCUMENTO AS VARCHAR))=TRX.CUSTOMER_ID_ 
+WHERE trx.trn_type='{{tipo_trx}}'
+group by 1  
+order by valor_trx desc  
+
+
+
+
+

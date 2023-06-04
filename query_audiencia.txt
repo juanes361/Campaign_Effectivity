@@ -1,0 +1,1 @@
+select * from "pco_datalake_prod_bi_campanas_db"."jep_audiencia_madres_FINAL_completa" where muestra ='Muestra'

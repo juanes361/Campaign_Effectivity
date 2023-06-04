@@ -1,0 +1,10 @@
+SELECT DISTINCT 
+customer_id_,
+saldo_puntos,
+muestra
+FROM
+
+(select distinct
+*
+{{query_str}}
+from ({{query_audiencia}}))

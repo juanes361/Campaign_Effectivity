@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS "pco_datalake_prod_bi_sandbox_db"."auto_temporal_clientes_final_{{date_today}}"
+WITH (format = 'Parquet',  write_compression = 'SNAPPY') AS 
+
+select * from "pco_datalake_prod_datalake_process_data"."clientes_final"
+where registrado=1

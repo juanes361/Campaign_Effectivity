@@ -1,0 +1,28 @@
+
+
+
+SELECT DISTINCT
+(CASE
+WHEN t1.recencia < 1 THEN '<1'
+WHEN t1.recencia >= 1 AND t1.recencia <3 THEN '0-3'
+WHEN t1.recencia >= 3 AND t1.recencia <=6 THEN '3-6'
+WHEN t1.recencia > 6 AND t1.recencia <=9 THEN '6-9'
+ELSE '9 o más'END) AS grupo_recencia,
+COUNT(DISTINCT c.customer_id_) AS clientes
+
+FROM
+({{query_comunicados}})c
+
+LEFT JOIN
+ (SELECT DISTINCT
+ res.customer_id_,
+ ROUND((DATE_DIFF('day',DATE('{{date_from_recencia}}'), MAX(date(res.fecha_trx)))/30.5),2) as recencia
+ 
+ FROM
+ 
+ (SELECT * FROM  "pco_datalake_prod_bi_campanas_db"."{{trx_table_name_recencia}}" WHERE trn_type in {{tipo_trx}})res
+ Group by 1)t1
+on c.customer_id_=t1.customer_id_
+GROUP BY 1
+order by grupo_recencia
+

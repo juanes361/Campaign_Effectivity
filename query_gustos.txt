@@ -1,0 +1,173 @@
+SELECT interes, clientes
+FROM (
+SELECT DISTINCT 'Pareja' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_pareja = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Hijos' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_hijos = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Mascotas' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_mascota = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Madres' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_madres = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Padres' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_padres = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Vive solo' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_solo = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Gatronomia' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_gastronomia = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Moda' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_moda = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Viajes' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_viajes = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Hogar' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_hogar = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Tecnologia' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_tecnologia = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Salud y belleza' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_salud_belleza = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Vehiculos' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_vehiculos = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Deportes' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_deportes = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Musica' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_musica = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Arte y cultura' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_art_cultura = 1
+GROUP BY 1
+)
+UNION (
+SELECT DISTINCT 'Entretenimiento' as interes, COUNT(DISTINCT(clt.customer_id_)) as clientes
+FROM "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}" clt
+JOIN (
+{{query_comunicados}}
+) com ON (clt.CUSTOMER_ID_ = com.CUSTOMER_ID_) 
+--JOIN (SELECT DISTINCT customer_id_ FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") trx ON clt.customer_id_=trx.customer_id_
+WHERE gus_entretenimiento = 1
+GROUP BY 1
+)
+
+order by clientes desc

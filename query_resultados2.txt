@@ -1,0 +1,12 @@
+
+SELECT
+  trn_type,
+  COUNT(DISTINCT customer_id_) AS clientes_trx,
+  SUM(puntos) AS puntos,
+  CAST(SUM(valor_trx) AS BIGINT) AS valor,
+  count(distinct(trx_id)) AS trx
+  FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}" 
+  WHERE TRN_TYPE IN('BR','ER')
+  GROUP BY 1
+  ORDER BY trn_type
+

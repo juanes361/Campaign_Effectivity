@@ -1,0 +1,148 @@
+--Maestra efectividad
+
+CREATE TABLE IF NOT EXISTS "pco_datalake_prod_bi_campanas_db"."{{maestra_table_name}}" AS 
+SELECT DISTINCT
+bd.*,
+
+
+CASE WHEN 
+--      (sent.CUSTOMER_ID IS NOT NULL OR open.CUSTOMER_ID IS NOT NULL OR click.CUSTOMER_ID IS NOT NULL) /* EMAIL_LINE MACRO_LINE */
+--        OR /*MACRO_LINE*/
+--      (sent_.CUSTOMER_ID IS NOT NULL OR click___.CUSTOMER_ID IS NOT NULL)  /*PUSH_LINE MACRO_LINE*/
+--        OR  /*MACRO_LINE*/
+--      (sent__.CUSTOMER_ID IS NOT NULL OR click__.CUSTOMER_ID IS NOT NULL) /*SMS_LINE MACRO_LINE*/
+        THEN 1 ELSE 0 END AS sent,
+        
+CASE WHEN 
+--      ((sent.CUSTOMER_ID IS NOT NULL AND  bounce.CUSTOMER_ID IS NULL AND fail.CUSTOMER_ID IS NULL) OR open.CUSTOMER_ID IS NOT NULL OR click.CUSTOMER_ID IS NOT NULL) /*EMAIL_LINE MACRO_LINE*/
+--        OR /*MACRO_LINE*/
+--      ((sent_.CUSTOMER_ID IS NOT NULL AND  bounced_.CUSTOMER_ID IS NULL) OR click___.CUSTOMER_ID IS NOT NULL)  /*PUSH_LINE MACRO_LINE*/
+--        OR /*MACRO_LINE*/
+--      ((sent__.mobile_number IS NOT NULL AND bounced__.mobile_number IS NULL) OR click__.CUSTOMER_ID IS NOT NULL) /*SMS_LINE MACRO_LINE*/
+        THEN 1 ELSE 0 END AS delivered,
+        
+-- CASE WHEN /*EMAIL_LINE PUSH_LINE*/
+--       open.CUSTOMER_ID IS NOT NULL OR click.CUSTOMER_ID IS NOT NULL /*EMAIL_LINE*/
+--      THEN 1 ELSE 0 END AS Open, /*EMAIL_LINE      */
+
+        
+-- CASE WHEN /*EMAIL_LINE SMS_LINE MACRO_LINE*/
+--      (click.CUSTOMER_ID IS NOT NULL) /*EMAIL_LINE MACRO_LINE*/
+--       OR /*MACRO_LINE*/
+--      (click__.CUSTOMER_ID IS NOT NULL) /*SMS_LINE MACRO_LINE*/
+--       OR /*MACRO_LINE*/
+--      (click___.CUSTOMER_ID IS NOT NULL)  /*PUSH_LINE MACRO_LINE*/
+--      THEN 1 ELSE 0 END AS click, /*EMAIL_LINE SMS_LINE MACRO_LINE PUSH_LINE*/
+
+
+
+
+
+
+CASE WHEN trx1.CUSTOMER_ID_ IS NOT NULL THEN 'acumula' ELSE '' END AS cliente_acumula,
+trx1.puntos AS puntos_acumula,
+trx1.valor_trx AS valor_acumula,
+trx1.trx AS trx_acumula,
+
+ 
+
+CASE WHEN trx2.CUSTOMER_ID_ IS NOT NULL THEN 'reden' ELSE '' END AS cliente_reden,
+trx2.puntos AS puntos_reden,
+trx2.valor_trx AS valor_reden,
+trx2.trx AS trx_reden,
+
+ 
+
+CASE WHEN trx1.CUSTOMER_ID_ IS NOT NULL OR trx2.CUSTOMER_ID_ IS NOT NULL THEN 1 ELSE 0 END AS cliente_trx
+
+ 
+
+FROM (
+      {{query_audiencia}}
+    )bd
+    
+-----------EMAIL-----------
+--LEFT JOIN /*EMAIL_LINE MACRO_LINE        */                                      
+--(SELECT * FROM "pco_datalake_prod_responsys"."email_sent" WHERE campaign_id IN (0{{ids_campana_email}})) sent /*EMAIL_LINE MACRO_LINE    */
+--ON (bd.CUSTOMER_ID_ = sent.CUSTOMER_ID) /*EMAIL_LINE MACRO_LINE    */
+
+
+--LEFT JOIN /*EMAIL_LINE MACRO_LINE */   
+--(SELECT * FROM "pco_datalake_prod_responsys"."email_bounce" WHERE campaign_id IN (0{{ids_campana_email}})) bounce /*EMAIL_LINE MACRO_LINE  */  
+--ON (bounce.CUSTOMER_ID = bd.CUSTOMER_ID_) /*EMAIL_LINE MACRO_LINE  */  
+
+ 
+
+--LEFT JOIN /*EMAIL_LINE MACRO_LINE  */  
+--(SELECT * FROM "pco_datalake_prod_responsys"."email_fail" WHERE campaign_id IN (0{{ids_campana_email}})) fail /*EMAIL_LINE MACRO_LINE    */
+--ON (fail.CUSTOMER_ID = bd.CUSTOMER_ID_) /*EMAIL_LINE MACRO_LINE    */
+
+ 
+
+--LEFT JOIN /*EMAIL_LINE MACRO_LINE    */
+--(SELECT * FROM "pco_datalake_prod_responsys"."email_open" WHERE campaign_id IN (0{{ids_campana_email}})) open /*EMAIL_LINE MACRO_LINE  */  
+--ON (open.CUSTOMER_ID = bd.CUSTOMER_ID_) /*EMAIL_LINE MACRO_LINE    */
+
+ 
+
+--LEFT JOIN /*EMAIL_LINE MACRO_LINE */
+--(SELECT * FROM "pco_datalake_prod_responsys"."email_click" WHERE campaign_id IN (0{{ids_campana_email}})) click /*EMAIL_LINE MACRO_LINE  */  
+--ON (click.CUSTOMER_ID = bd.CUSTOMER_ID_) /*EMAIL_LINE MACRO_LINE    */
+
+
+-- -- ----------PUSH NOTIFICATION------------------
+
+-- LEFT JOIN /*PUSH_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."app_push_sent" WHERE campaign_id IN (0{{ids_campana_push}})) sent_ /*PUSH_LINE MACRO_LINE*/
+-- ON (sent_.CUSTOMER_ID = bd.CUSTOMER_ID_) /*PUSH_LINE MACRO_LINE*/
+
+-- LEFT JOIN /*PUSH_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."app_push_bounced" WHERE campaign_id IN (0{{ids_campana_push}})) bounced_ /*PUSH_LINE MACRO_LINE*/
+-- ON (bounced_.push_id  = sent_.push_id) /*PUSH_LINE MACRO_LINE*/
+
+-- LEFT JOIN /*PUSH_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."app_push_opened" WHERE campaign_id IN (0{{ids_campana_push}})) click___ /*PUSH_LINE MACRO_LINE*/
+-- ON (click___.CUSTOMER_ID = bd.CUSTOMER_ID_) /*PUSH_LINE MACRO_LINE*/
+
+--  -- ----------SMS------------------
+
+-- LEFT JOIN /*SMS_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."sms_sent" WHERE campaign_id IN (0{{ids_campana_sms}})) sent__ /*SMS_LINE MACRO_LINE*/
+-- ON (sent__.CUSTOMER_ID = bd.CUSTOMER_ID_) /*SMS_LINE MACRO_LINE*/
+
+-- LEFT JOIN /*SMS_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."sms_delivered" WHERE delivered_flag != 1 and campaign_id IN (0{{ids_campana_sms}})) bounced__ /*SMS_LINE MACRO_LINE*/
+-- ON (CAST(bounced__.mobile_number AS VARCHAR))  = CAST(sent__.mobile_number AS VARCHAR) /*SMS_LINE MACRO_LINE*/
+
+-- LEFT JOIN /*SMS_LINE MACRO_LINE*/
+-- (SELECT * FROM "pco_datalake_prod_responsys"."sms_click" WHERE campaign_id IN (0{{ids_campana_sms}})) click__ /*SMS_LINE MACRO_LINE*/
+-- ON (click__.CUSTOMER_ID = bd.CUSTOMER_ID_) /*SMS_LINE MACRO_LINE*/
+
+
+-- --------WHATSAPP----------------
+
+-- LEFT JOIN
+-- (SELECT DISTINCT CUSTOMER_ID_ FROM  "pco_datalake_prod_bi_sandbox_db"."jep_bd_campaña_lanzamiento_boton_whatsapp" ) WH 
+-- ON (WH.CUSTOMER_ID_ = bd.CUSTOMER_ID_)
+
+
+--------Transaccional
+
+
+
+LEFT JOIN 
+    (SELECT distinct  CUSTOMER_ID_,SUM(PUNTOS) AS PUNTOS,SUM(VALOR_TRX) AS VALOR_TRX ,COUNT(TRX_ID) AS TRX 
+    FROM "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"  
+    WHERE trn_type = 'ER'  
+    GROUP BY CUSTOMER_ID_) trx1 
+ON (trx1.CUSTOMER_ID_ = bd.CUSTOMER_ID_ )
+
+ 
+
+
+LEFT JOIN 
+    (SELECT  distinct CUSTOMER_ID_,SUM(PUNTOS) AS PUNTOS,SUM(VALOR_TRX) AS VALOR_TRX ,COUNT(TRX_ID) AS TRX 
+    FROM  "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"  
+    WHERE trn_type = 'BR'  
+    GROUP BY CUSTOMER_ID_) trx2 
+ON (trx2.CUSTOMER_ID_ = bd.CUSTOMER_ID_ )

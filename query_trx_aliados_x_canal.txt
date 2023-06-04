@@ -1,0 +1,22 @@
+
+----Clientes comunicados
+
+select distinct
+trx.aliado, 
+cast((round(SUM(trx.VALOR_TRX) * 100.0 / SUM(SUM(trx.VALOR_TRX)) OVER (),8))/100 as decimal(32,6)) AS Sales_part,
+count(distinct(trx.customer_id_)) as cliente_acumula,   
+SUM(trx.PUNTOS) AS PUNTOS,
+cast(SUM(trx.VALOR_TRX) as bigint) AS VALOR_TRX,
+COUNT(trx.TRX_ID) AS TRX 
+FROM ("pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") TRX
+
+
+JOIN ({{query_comunicados}}) BD
+ON (trx.CUSTOMER_ID_ = bd.CUSTOMER_ID_ )  
+WHERE trx.trn_type='{{tipo_trx}}' and trx.canal='{{canal}}'  
+
+
+group by 1
+order by valor_trx desc
+
+    

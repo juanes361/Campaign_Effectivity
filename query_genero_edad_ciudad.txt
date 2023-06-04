@@ -1,0 +1,23 @@
+
+----segmento comunicados
+
+select distinct
+--CASE WHEN cf.rango_edad IS NOT NULL THEN cf.rango_edad else 'Edad no asignada' END AS RANGO_EDAD, /* RANGO_EDAD_LINE */  
+--CASE WHEN cf.genero =' ' OR cf.genero ='' THEN 'Genero no asignado' ELSE cf.genero END AS GENERO,   /* GENERO_LINE */  
+--CASE WHEN cf.ciudad IS NOT NULL THEN cf.ciudad ELSE 'Ciudad ni asignada' END AS CIUDAD, /* CIUDAD_LINE */  
+cast((round(SUM(trx.VALOR_TRX) * 100.0 / SUM(SUM(trx.VALOR_TRX)) OVER (),8))/100 as decimal(32,6)) AS Sales_part,
+count(distinct(trx.customer_id_)) as cliente_acumula,   
+SUM(trx.PUNTOS) AS PUNTOS,
+cast(SUM(trx.VALOR_TRX) as bigint) AS VALOR_TRX,
+COUNT(trx.TRX_ID) AS TRX 
+FROM ("pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}") TRX
+JOIN ({{query_comunicados}}) BD
+ON (trx.CUSTOMER_ID_ = bd.CUSTOMER_ID_ )
+LEFT JOIN
+(SELECT DISTINCT customer_id_, rango_edad,genero,ciudad FROM  "pco_datalake_prod_bi_sandbox_db"."{{clientes_final_table}}")CF
+ON cf.CUSTOMER_ID_=TRX.CUSTOMER_ID_
+WHERE trx.trn_type='{{tipo_trx}}'
+--group by cf.rango_edad /* RANGO_EDAD_LINE */  
+--group by cf.genero /* GENERO_LINE */  
+--group by cf.ciudad /* CIUDAD_LINE */ 
+order by valor_trx desc

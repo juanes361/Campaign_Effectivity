@@ -1,0 +1,92 @@
+/*TRX PYMES*/
+CREATE TABLE IF NOT EXISTS "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"
+WITH (format = 'Parquet',  write_compression = 'SNAPPY') AS 
+
+SELECT
+trx.*,al.*,t2.nro_documento,t3.tipo_documento,concat(t3.tipo_documento,'-',t2.nro_documento) as customer_id_,'NA' as MARCA,
+SUM(case when trx.trn_type ='BR' Then t11.tpt_points*-1 else t11.tpt_points end) OVER (PARTITION by trx.trx_id) AS puntos
+FROM
+(SELECT * 
+FROM
+(SELECT
+t1a.trn_date as fecha_trx,
+year(t1a.trn_date) AS Ano,
+Month(t1a.trn_date) AS Mes,
+day(t1a.trn_date) as Dia,
+t1a.trn_status,
+t1a.trn_id as trx_id,
+t1a.trn_prt_id codigo_aliado,
+t1a.trn_type, 
+t1a.trn_acc_id,
+t1a.trn_loc_id,
+case 
+when t1a.trn_total_value= 0 then t1a.trnx_total_cash_redeemed
+when t1a.trnx_total_cash_redeemed = 0 then t1a.trn_total_value
+end as valor_trx,
+ROW_NUMBER() OVER(PARTITION BY t1a.trn_id ORDER BY t1a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_transactions" t1a) t1b
+
+
+WHERE t1b.rc = 1
+and t1b.trn_type IN('ER','BR')
+and t1b.trn_status = 'B'
+and t1b.trn_loc_id in (select distinct loc_id from "pco_datalake_prod_datalake_process_data"."aliados_pymes_consolidado" where loc_id is not null)
+and (date(t1b.fecha_trx) between cast('{{date_from}}' as date) and cast('{{date_to}}' as date)))trx
+
+
+/*Puntos*/
+JOIN
+(SELECT
+t2c.tpt_src_trn_id, SUM(t2c.tpt_points) tpt_points
+FROM
+    (SELECT
+    t2b.*
+    FROM
+    (SELECT
+    t2a.*,
+    ROW_NUMBER() OVER(PARTITION BY t2a.tpt_id ORDER BY t2a.tech_inserttransformationid DESC) AS rc
+    FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_trn_res_points" t2a) t2b
+    WHERE t2b.rc = 1) t2c
+GROUP BY 1) t11
+ON (trx.trx_id = t11.tpt_src_trn_id)
+
+left join 
+(select loc_id ,prt_code as nit, prt_name as aliado,prt_status,categoria,city from
+"pco_datalake_prod_datalake_process_data"."aliados_pymes_consolidado") al
+on al.loc_id= trx.trn_loc_id
+
+
+/*Nro documento*/
+LEFT JOIN
+(SELECT
+t2b.idn_no as nro_documento, t2b.idn_acc_id, t2b.idn_idt_id
+FROM
+    (SELECT
+    t2a.idn_no, t2a.idn_acc_id, t2a.idn_idt_id,
+    ROW_NUMBER() OVER(PARTITION BY t2a.idn_acc_id ORDER BY t2a.tech_inserttransformationid DESC) AS rc
+    FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_identifiers" t2a) t2b
+    WHERE t2b.rc = 1) t2
+ON trx.trn_acc_id = t2.idn_acc_id
+
+/*Tipo documento*/
+LEFT JOIN
+(SELECT
+t3b.idt_code as tipo_documento, t3b.idt_id
+FROM
+    (SELECT
+    t3a.idt_code, t3a.idt_id,
+    ROW_NUMBER() OVER(PARTITION BY t3a.idt_id ORDER BY t3a.tech_inserttransformationid DESC) AS rc
+    FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_identifier_types" t3a) t3b
+WHERE t3b.rc = 1) t3
+ON t2.idn_idt_id = t3.idt_id
+
+
+/*customer_id_ de entregados y abiertos segun sea email*/
+--JOIN
+--    ({{query_comunicados}})aa
+--ON aa.customer_id_=concat(t3.tipo_documento,'-',t2.nro_documento)
+
+where 
+1=1
+
+

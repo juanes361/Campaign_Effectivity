@@ -1,0 +1,128 @@
+CREATE TABLE "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"
+WITH (format = 'Parquet', write_compression = 'SNAPPY') AS
+
+
+
+SELECT DISTINCT
+
+
+
+--t1.trn_date AS fecha_trx,
+t1.trn_id AS trx_id,
+t1.trn_type AS trn_type,
+t5.prt_name AS aliado,
+--t10.ttp_name AS trn_type,
+CONCAT(t3.idt_code,'-',t2.idn_no) AS customer_id_,
+
+
+
+SUM(case when t1.trn_type ='BR' Then t11.tpt_points*-1 else t11.tpt_points end) OVER (PARTITION by t1.trn_id) AS puntos,
+sum (case
+when (t1.trn_total_value + t1.trnx_total_cash_redeemed)<> 0 then t1.trn_total_value + t1.trnx_total_cash_redeemed
+when (t1.trn_total_value + t1.trnx_total_cash_redeemed)=0 and t1.trn_type ='ER' and t5.prt_code = '900640173' then (t11.tpt_points)*3500
+when (t1.trn_total_value + t1.trnx_total_cash_redeemed)=0 and t1.trn_type ='ER' and t5.prt_code = '900129597' then (t11.tpt_points)*500
+when (t1.trn_total_value + t1.trnx_total_cash_redeemed)=0 and t1.trn_type ='ER' and t5.prt_code = '900619925' then (t11.tpt_points)*2300
+when t1.trn_type ='BR' and t5.prt_code = '444449832' then abs(t11.tpt_points)*6 /*booking*/
+when t1.trn_type ='BR' and t5.prt_code = '900313349' then abs(t11.tpt_points)*6 /*viva air*/
+when (t1.trn_total_value + t1.trnx_total_cash_redeemed)=0 and t1.trn_type ='BR' then abs(t11.tpt_points)*7 end) OVER (PARTITION by t1.trn_id) AS valor_trx,
+t1.trn_receipt_id as receipt_id,
+'NA' as marca,
+'NA' as categoria,
+'NA' as ciudad
+
+
+
+
+
+FROM
+(SELECT * FROM
+(SELECT
+t1b.*
+FROM
+(SELECT
+t1a.*,
+ROW_NUMBER() OVER(PARTITION BY t1a.trn_id ORDER BY t1a.tech_inserttransformationid DESC) AS rc
+FROM pco_datalake_prod_datalake_odsclm_db.v_cst_transactions t1a) t1b
+WHERE t1b.rc = 1 and t1b.trn_status = 'B' and (date(t1b.trn_date) between cast('{{date_from}}' as date) and cast('{{date_to}}' as date))
+)--And Month(t1b.trn_date) BETWEEN 1 and 6)
+WHERE (cast (trn_date as timestamp)>= cast('2022-11-09 21:06:20.970'as timestamp)))
+--And Month(t1b.trn_date) BETWEEN 1 and 6
+t1
+JOIN
+(SELECT
+t2c.tpt_src_trn_id, SUM(t2c.tpt_points) tpt_points
+FROM
+(SELECT
+t2b.*
+FROM
+(SELECT
+t2a.*,
+ROW_NUMBER() OVER(PARTITION BY t2a.tpt_id ORDER BY t2a.tech_inserttransformationid DESC) AS rc
+FROM pco_datalake_prod_datalake_odsclm_db.v_cst_trn_res_points t2a) t2b
+WHERE t2b.rc = 1) t2c
+GROUP BY 1) t11
+ON (t1.trn_id = t11.tpt_src_trn_id)
+LEFT JOIN
+(SELECT
+t2b.idn_no, t2b.idn_acc_id, t2b.idn_idt_id
+FROM
+(SELECT
+t2a.idn_no, t2a.idn_acc_id, t2a.idn_idt_id,
+ROW_NUMBER() OVER(PARTITION BY t2a.idn_acc_id ORDER BY t2a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_identifiers" t2a) t2b
+WHERE t2b.rc = 1) t2
+ON t1.trn_acc_id = t2.idn_acc_id
+LEFT JOIN
+(SELECT
+t3b.idt_code, t3b.idt_id
+FROM
+(SELECT
+t3a.idt_code, t3a.idt_id,
+ROW_NUMBER() OVER(PARTITION BY t3a.idt_id ORDER BY t3a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_identifier_types" t3a) t3b
+WHERE t3b.rc = 1) t3
+ON t2.idn_idt_id = t3.idt_id
+LEFT JOIN
+(SELECT
+t5b.prt_code, t5b.prt_name, t5b.prt_id
+FROM
+(SELECT
+t5a.prt_code, t5a.prt_name, t5a.prt_id,
+ROW_NUMBER() OVER(PARTITION BY t5a.prt_id ORDER BY t5a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_partners" t5a) t5b
+WHERE t5b.rc = 1) t5
+ON t1.trn_prt_id = t5.prt_id
+LEFT JOIN
+(SELECT
+t6b.loc_code, t6b.loc_name, t6b.loc_id, t6b.loc_adr_id
+FROM
+(SELECT
+t6a.loc_code, t6a.loc_name, t6a.loc_id, t6a.loc_adr_id,
+ROW_NUMBER() OVER(PARTITION BY t6a.loc_id ORDER BY t6a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_locations" t6a) t6b
+WHERE t6b.rc = 1) t6
+ON t1.trn_loc_id = t6.loc_id
+LEFT JOIN
+(SELECT
+t10b.ttp_name, t10b.ttp_code
+FROM
+(SELECT
+t10a.ttp_name, t10a.ttp_code,
+ROW_NUMBER() OVER(PARTITION BY t10a.ttp_id ORDER BY t10a.tech_inserttransformationid DESC) AS rc
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_transaction_types" t10a) t10b
+WHERE t10b.rc = 1) t10
+ON t1.trn_type = t10.ttp_code
+LEFT JOIN
+(SELECT
+t13a.dit_name, t13a.dit_code
+FROM "pco_datalake_prod_bi_sandbox_db"."dictionaries_and_items" t13a
+WHERE t13a.dic_domain = 'BANK_PRODUCT_TYPES') t13
+ON t1.trnx_logo_code = t13.dit_code
+/*FILTROS GENERALES*/
+
+/*customer_id_ de entregados y abiertos segun sea email*/
+--JOIN
+--    ({{query_comunicados}})aa
+--ON aa.customer_id_=CONCAT(t3.idt_code,'-',t2.idn_no) 
+
+WHERE t10.ttp_name IN ('Sale','Redemption') and t11.tpt_points is not null and t5.prt_name ='Wompi'

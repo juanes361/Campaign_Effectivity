@@ -1,0 +1,7 @@
+
+SELECT
+COUNT(DISTINCT customer_id_) AS clientes_trx
+FROM  "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}" 
+
+
+WHERE TRN_TYPE IN('BR','ER')

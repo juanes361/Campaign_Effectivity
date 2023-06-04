@@ -1,0 +1,73 @@
+CREATE TABLE IF NOT EXISTS "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"
+WITH (format = 'Parquet',  write_compression = 'SNAPPY') AS 
+
+
+
+SELECT DISTINCT
+CONCAT(idt.idt_code,'-',idn.idn_no) AS customer_id_,
+trx.trn_type,
+'NA' AS aliado,
+'NA' AS marca,
+'NA' AS categoria,
+'NA' AS ciudad,
+trx.trn_id AS trx_id,
+tpt.tpt_points AS puntos,
+trx.trn_total_value + trx.trnx_total_cash_redeemed AS valor_trx,
+1 AS BD
+
+FROM 
+(SELECT b.* 
+FROM (SELECT 
+      t.trn_acc_id, t.trn_idn_id, t.trn_cus_id, t.trn_date, t.trn_id, t.trn_prt_id, t.trn_type, 
+      t.trn_total_value, t.trnx_total_cash_redeemed, t.trn_status, t.trn_loc_id, 
+      row_number() over (PARTITION BY trn_id ORDER BY tech_inserttransformationid DESC) AS rn
+  FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_transactions" t
+    WHERE 1=1 
+      AND trn_type IN ('ER', 'BR')
+      AND DATE(trn_date) BETWEEN DATE('{{date_from}}') AND DATE('{{date_to}}')) b
+ WHERE 1 = 1
+  AND b.rn = 1
+  ANd b.trn_status = 'B') trx
+
+
+JOIN
+(SELECT 
+   b.tpt_src_trn_id, SUM(b.tpt_points) AS tpt_points
+ FROM (SELECT 
+       t.tpt_id, t.tpt_src_trn_id, t.tpt_points,
+       row_number() over (PARTITION BY tpt_id ORDER BY tech_inserttransformationid DESC) AS rn
+ FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_trn_res_points" t) b
+  WHERE 1=1
+    AND b.rn=1
+  GROUP BY 1
+  HAVING SUM(b.tpt_points) <> 0) tpt ON (tpt.tpt_src_trn_id = trx.trn_id)
+
+
+JOIN
+(SELECT b.* 
+ FROM (SELECT 
+       t.idn_id, t.idn_status, t.idn_cus_id, t.idn_acc_id, t.idn_no, t.idn_idt_id,
+       row_number() over (PARTITION BY idn_id ORDER BY tech_inserttransformationid desc) as rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_identifiers" t
+ WHERE 1 = 1      
+     /*AND idn_status = 'A'
+     AND idn_idt_id IN (1050, 1100) /*1050:2 1100:3*/) b
+WHERE b.rn=1) idn ON (idn.idn_cus_id = trx.trn_cus_id AND idn.idn_acc_id = trx.trn_acc_id)
+
+
+LEFT JOIN
+(SELECT b.* 
+ FROM (SELECT 
+       t.idt_id, t.idt_code,
+       row_number() over (PARTITION BY idt_id ORDER BY tech_inserttransformationid desc) as rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_identifier_types" t) b
+WHERE b.rn=1) idt ON (idn.idn_idt_id = idt.idt_id)
+
+
+/*customer_id_ de entregados y abiertos segun sea email*/
+--JOIN
+--    ({{query_comunicados}})aa
+--ON aa.customer_id_=CONCAT(idt.idt_code,'-',idn.idn_no) 
+
+where 
+1=1

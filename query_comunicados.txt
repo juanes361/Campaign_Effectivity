@@ -1,0 +1,15 @@
+
+SELECT 
+    DISTINCT customer_id_
+    FROM "pco_datalake_prod_bi_campanas_db"."{{maestra_table_name}}" 
+    where
+    1=1
+     -------email-------
+    --and (Open = 1 AND Click = 0)  /* EMAIL_LINE */
+    --or (Open = 1 AND Click = 1)   /* EMAIL_LINE */
+    
+     -------sms, macro y push -------
+    --and (delivered = 1 AND Click = 0)   /* MACRO_LINE  SMS_LINE PUSH_LINE*/
+    --or (delivered = 1 AND Click = 1)   /* MACRO_LINE  SMS_LINE PUSH_LINE*/
+    
+    and Muestra='Muestra'

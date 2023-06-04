@@ -1,0 +1,109 @@
+CREATE TABLE IF NOT EXISTS "pco_datalake_prod_bi_campanas_db"."{{trx_table_name}}"
+WITH (format = 'Parquet',  write_compression = 'SNAPPY') AS 
+
+SELECT DISTINCT
+
+trx.trn_date as fecha_trx,
+trx.trn_id as trx_id,
+trx.trn_type,
+CONCAT(idt.idt_code,'-',idn.idn_no) as customer_id_,
+ABS(tpt.tpt_points) AS puntos,
+(case
+when (trx.trn_total_value + trx.trnx_total_cash_redeemed)<> 0 then trx.trn_total_value + trx.trnx_total_cash_redeemed
+when (trx.trn_total_value + trx.trnx_total_cash_redeemed)=0 and trx.trn_type ='ER' and prt.prt_code = '900640173' then (tpt.tpt_points)*3500
+when (trx.trn_total_value + trx.trnx_total_cash_redeemed)=0 and trx.trn_type ='ER' and prt.prt_code = '900129597' then (tpt.tpt_points)*500
+when (trx.trn_total_value + trx.trnx_total_cash_redeemed)=0 and trx.trn_type ='ER' and prt.prt_code = '900619925' then (tpt.tpt_points)*2300
+when trx.trn_type ='BR' and prt.prt_code = '444449832' then abs(tpt.tpt_points)*6 /*booking*/
+when trx.trn_type ='BR' and prt.prt_code = '900313349' then abs(tpt.tpt_points)*6 /*viva air*/
+when (trx.trn_total_value + trx.trnx_total_cash_redeemed)=0 and trx.trn_type ='BR' then abs(tpt.tpt_points)*7 end) AS valor_trx,
+prt.prt_name AS aliado,
+clm.marca,
+clm.categoria,
+'NA' as ciudad,
+trx.trn_prt_id as prt_id
+
+
+
+FROM
+(SELECT b.*
+FROM (SELECT
+ t.trn_acc_id, t.trn_idn_id, t.trn_cus_id, t.trn_date, t.trn_id, t.trn_prt_id, t.trn_type,
+ t.trn_total_value, t.trnx_total_cash_redeemed, t.trn_status, t.trn_loc_id,
+ row_number() over (PARTITION BY trn_id ORDER BY tech_inserttransformationid DESC) AS rn
+ FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_transactions" t
+ WHERE DATE(trn_date) BETWEEN DATE('{{date_from}}') AND DATE('{{date_to}}')) b
+WHERE 1 = 1
+ AND b.rn = 1
+ AND b.trn_status = 'B') trx
+
+
+
+JOIN
+(SELECT
+ b.tpt_src_trn_id, SUM(b.tpt_points) AS tpt_points
+FROM (SELECT
+ t.tpt_id, t.tpt_src_trn_id, t.tpt_points,
+ row_number() over (PARTITION BY tpt_id ORDER BY tech_inserttransformationid DESC) AS rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_trn_res_points" t) b
+ WHERE 1=1
+ AND b.rn=1
+ GROUP BY 1
+ HAVING SUM(b.tpt_points) <> 0) tpt ON (tpt.tpt_src_trn_id = trx.trn_id)
+
+LEFT JOIN
+(SELECT b.*
+FROM (SELECT
+ t.prt_id, t.prt_code, t.prt_name,
+ row_number() over (PARTITION BY prt_id ORDER BY tech_inserttransformationid DESC) AS rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_partners" t) b
+ WHERE b.rn=1) prt ON (prt.prt_id = trx.trn_prt_id)
+
+
+
+LEFT JOIN
+(SELECT b.*
+FROM (SELECT
+ t.loc_id, t.loc_code, t.loc_name, t.loc_adr_id,
+ row_number() over (PARTITION BY loc_id ORDER BY tech_inserttransformationid DESC) AS rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_locations" t) b
+WHERE b.rn=1) loc ON (loc.loc_id = trx.trn_loc_id)
+
+
+
+JOIN
+(SELECT b.*
+FROM (SELECT
+ t.idn_id, t.idn_status, t.idn_cus_id, t.idn_acc_id, t.idn_no, t.idn_idt_id,
+ row_number() over (PARTITION BY idn_id ORDER BY tech_inserttransformationid desc) as rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_cst_identifiers" t
+WHERE 1 = 1
+ AND idn_status = 'A'
+ AND idn_idt_id IN (1050, 1100) /*1050:2 1100:3*/) b
+WHERE b.rn=1) idn ON (idn.idn_cus_id = trx.trn_cus_id AND idn.idn_acc_id = trx.trn_acc_id)
+
+
+
+LEFT JOIN
+(SELECT b.*
+FROM (SELECT
+ t.idt_id, t.idt_code,
+ row_number() over (PARTITION BY idt_id ORDER BY tech_inserttransformationid desc) as rn
+FROM "pco_datalake_prod_datalake_odsclm_db"."v_lct_identifier_types" t) b
+WHERE b.rn=1) idt ON (idn.idn_idt_id = idt.idt_id)
+
+
+
+LEFT JOIN
+(SELECT t.prt_id,t.nit,t.aliado,t.loc_id,t.categoria,t.marca
+FROM "pco_datalake_prod_bi_sandbox_db"."sitios_clm" t) clm
+ON (clm.prt_id = trx.trn_prt_id)
+
+
+/*customer_id_ de entregados y abiertos segun sea email*/
+--JOIN
+--    ({{query_comunicados}})aa
+--ON aa.customer_id_=concat(idt.idt_code,'-',idn.idn_no)
+
+where 
+1=1
+

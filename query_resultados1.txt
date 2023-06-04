@@ -1,0 +1,40 @@
+SELECT
+*
+FROM(
+SELECT DISTINCT
+upper(Muestra) as muestra,
+CASE 
+--WHEN Sent = 0 AND Delivered = 0 THEN '2. No enviado' /* EMAIL_LINE MACRO_LINE PUSH_LINE SMS_LINE*/
+--WHEN Sent = 1 AND Delivered = 0 THEN '3. No entregado' /* EMAIL_LINE MACRO_LINE PUSH_LINE SMS_LINE*/
+
+ -------email-------
+--WHEN Delivered = 1 AND Open = 0 THEN '4. Entregado y no abierto' /* EMAIL_LINE*/
+--WHEN Open = 1 AND Click = 0 THEN '5. Abierto sin click' /* EMAIL_LINE */
+--WHEN Open = 1 AND Click = 1 THEN  '6. Abierto con click' /* EMAIL_LINE */
+
+ -------sms, macro y push -------
+--WHEN delivered = 1 AND Click = 0 THEN '4. Enviado y sin click' /* MACRO_LINE  SMS_LINE PUSH_LINE*/
+--WHEN delivered = 1 AND Click = 1 THEN  '5. Enviado y con click' /* MACRO_LINE  SMS_LINE PUSH_LINE*/
+
+
+
+END AS Estado,
+COUNT(DISTINCT customer_id_) AS clientes,
+COUNT(CASE WHEN cliente_acumula <> '' THEN cliente_acumula END) AS cliente_acumula,
+SUM(puntos_acumula) AS puntos_acumula,
+CAST(SUM(valor_acumula) AS BIGINT) AS valor_acumula,
+SUM(trx_acumula) AS trx_acumula,
+COUNT(CASE WHEN cliente_reden <> '' THEN cliente_reden END) AS cliente_reden,
+SUM(puntos_reden) AS puntos_reden,
+CAST(SUM(valor_reden) AS BIGINT) AS valor_reden,
+SUM(trx_reden) AS trx_reden,
+SUM(cliente_trx) AS cliente_trx,
+SUM(SALDO_PUNTOS) AS SALDO_PUNTOS
+FROM "pco_datalake_prod_bi_campanas_db"."{{maestra_table_name}}" 
+GROUP BY 1,2
+  )
+ORDER BY 
+MUESTRA,
+Estado 
+
+
