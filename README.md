@@ -15,7 +15,6 @@ Thank you for reviewing this project! I hope this demonstration of my skills mee
 
 # Campaign_Effectivity - Español
 
-Medición de efectividad de campañas
 Este proyecto tiene como objetivo medir la efectividad de las campañas realizadas dentro de una compañia. El código desarrollado genera un informe en formato Excel, con distintas hojas en el mismo libro, que proporciona información detallada sobre el comportamiento de los clientes que realizaron transacciones después de recibir una campaña por correo electrónico, SMS o notificaciones push.
 
 El análisis realizado abarca múltiples aspectos. En primer lugar, se evalúa la efectividad de los envíos, es decir, se calcula el porcentaje de clientes que realizaron una compra efectiva en relación con el total de envíos realizados. Además, se profundiza en el perfil de los clientes que consumieron, investigando las categorías de productos más adquiridas después de la campaña, las marcas preferidas, la recencia de las transacciones (es decir, cuándo fue la última compra realizada), los rangos de edad de los clientes, su segmentación dentro de la compañía, la ciudad de residencia y el género predominante de los consumidores, entre otros aspectos relevantes.
