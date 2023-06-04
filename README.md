@@ -4,7 +4,7 @@ This project aims to measure the effectiveness of campaigns carried out within a
 
 The analysis covers various aspects. Firstly, the effectiveness of the deliveries is evaluated, i.e., the percentage of customers who made an effective purchase compared to the total number of deliveries. Additionally, the code delves into the profile of consuming customers, investigating the most purchased product categories after the campaign, preferred brands, transaction recency (i.e., when was the last purchase made), age ranges of customers, their segmentation within the company, city of residence, and predominant gender of consumers, among other relevant aspects.
 
-It is important to highlight that this project was created in a Cloud9 environment, and AWS services were leveraged to execute Athena queries, allowing the retrieval of the required DataFrames for obtaining the expected results.
+It is important to highlight that this project was created in a Cloud9 environment (Python), and AWS services were leveraged to execute Athena queries (SQL), allowing the retrieval of the required DataFrames for obtaining the expected results.
 
 Additional Notes:
 This project was developed specifically for a company and utilizes internal company data. Its functionality or usefulness outside of this context is not guaranteed.
@@ -19,7 +19,7 @@ Este proyecto tiene como objetivo medir la efectividad de las campañas realizad
 
 El análisis realizado abarca múltiples aspectos. En primer lugar, se evalúa la efectividad de los envíos, es decir, se calcula el porcentaje de clientes que realizaron una compra efectiva en relación con el total de envíos realizados. Además, se profundiza en el perfil de los clientes que consumieron, investigando las categorías de productos más adquiridas después de la campaña, las marcas preferidas, la recencia de las transacciones (es decir, cuándo fue la última compra realizada), los rangos de edad de los clientes, su segmentación dentro de la compañía, la ciudad de residencia y el género predominante de los consumidores, entre otros aspectos relevantes.
 
-Es importante destacar que este proyecto fue desarrollado en un entorno Cloud9 y se aprovechó el servicio AWS para ejecutar consultas a Athena, lo cual permitió obtener los DataFrames necesarios para obtener los resultados esperados.
+Es importante destacar que este proyecto fue desarrollado en un entorno Cloud9 (Python) y se aprovechó el servicio AWS para ejecutar consultas a Athena (SQL), lo cual permitió obtener los DataFrames necesarios para obtener los resultados esperados.
 
 
 Notas adicionales:
